@@ -119,7 +119,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 <h2>Be first to hear when we launch.</h2>
 <form id="f">
 <label for="em">Email address</label>
-<input id="em" type="email" placeholder="you@example.com" required autocomplete="email">
+<input id="em" name="email" type="email" placeholder="you@example.com" required autocomplete="email">
 <button class="btn" type="submit">Join the waitlist</button>
 </form>
 <div id="msg" role="status" aria-live="polite"></div>
@@ -132,13 +132,22 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 </div></footer>
 
 <script>
-// Waitlist form: this only shows a message in the browser. To collect real emails,
-// point the form at a form service (for example Formspree) or your own backend.
-document.getElementById('f').addEventListener('submit',function(e){
+// 1) Create a free form at formspree.io, 2) paste its address below in place of YOUR_FORM_ID.
+var FORM_URL = 'https://formspree.io/f/YOUR_FORM_ID';
+
+document.getElementById('f').addEventListener('submit', async function (e) {
   e.preventDefault();
-  var em=document.getElementById('em');
-  document.getElementById('msg').textContent='You are on the list. We will write to '+em.value+' when we are ready to launch.';
-  this.reset();
+  var form = this, msg = document.getElementById('msg');
+  if (FORM_URL.indexOf('YOUR_FORM_ID') !== -1) {
+    console.warn('Form not connected: replace YOUR_FORM_ID with your Formspree form ID.');
+    msg.textContent = 'Signups are not open yet. Please check back soon.';
+    return;
+  }
+  try {
+    var r = await fetch(FORM_URL, { method: 'POST', headers: { 'Accept': 'application/json' }, body: new FormData(form) });
+    if (r.ok) { msg.textContent = 'You are on the list. Thank you! We will only email you about the launch.'; form.reset(); }
+    else { msg.textContent = 'Something went wrong. Please try again.'; }
+  } catch (err) { msg.textContent = 'Something went wrong. Please try again.'; }
 });
 </script>
 </body>
